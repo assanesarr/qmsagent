@@ -7,9 +7,16 @@ import {
 
 import { io } from 'socket.io-client';
 
+type CALLED = {
+  id: number,
+  status: string,
+  guichet: number
+  totalWaiting: number
+}
+
 
 const fetchdata = async () => {
-  return await fetch(`http://localhost:3000`,
+  return await fetch(`http://localhost:3000/next`,
     {
       method: 'GET',
       headers: {
@@ -27,42 +34,40 @@ const fetchdata = async () => {
 export const socket = io(import.meta.env.VITE_API_URL);
 
 function App() {
-  const [items, setItems] = useState([{ id: 0, guichet: 0 }]);
+  const [called, setCalled] = useState<CALLED>()
 
   // const socket = io('http://localhost:3000');
   const speak = (g: number) => {
-    // const text = "The number 45 is called to counter 2";
-    socket.emit('call-next', { guichet: g, id: (items[items.length - 1]?.id) });
-
+    socket.emit('call-next', { ...called, guichet: g });
   };
 
   useEffect(() => {
-    socket.on('ticket-called', data => {
-      console.log(data)
-      if (data.ticketId) {
-        setItems(prev => [...prev, { id: data.ticketId, guichet: data.guichet }]);
-      }else{
-        setItems([]);
-      }
+    socket.on('ticket-next', data => {
+      console.log('ticket-next', data)
+      setCalled(data)
     });
     fetchdata()
       .then(data => {
-        setItems(data)
+        setCalled(data)
         console.log(data)
       })
- return () => {
-      socket.off('ticket-called');
+    return () => {
+      socket.off('ticket-next');
     };
   }, [])
 
   return (
     <div className="flex min-h-svh flex-col items-center justify-center  p-4">
-      <Card className="mb-4 min-w-xs " onClick={() => items.length === 0 ? null : speak(1)}>
+      <Card className="mb-4 min-w-xs " onClick={() => speak(1)}>
         <CardContent className="flex flex-col items-center gap-4">
           <CardTitle className="text-2xl font-bold mb-2">Guichet 1</CardTitle>
           <h1 className="text-6xl font-bold">
-            {items[items.length - 1]?.id}
+            {called && called?.id}
           </h1>
+
+          <p className='text-xs '>
+            Client En attente : {called && called?.totalWaiting}
+          </p>
         </CardContent>
       </Card>
     </div>
