@@ -35,6 +35,7 @@ export const socket = io(import.meta.env.VITE_API_URL);
 
 function App() {
   const [called, setCalled] = useState<CALLED>()
+  const [config, setConfig] = useState(null)
 
   // const socket = io('http://localhost:3000');
   const speak = (g: number) => {
@@ -43,14 +44,13 @@ function App() {
 
   useEffect(() => {
     socket.on('ticket-next', data => {
-      console.log('ticket-next', data)
       setCalled(data)
     });
     fetchdata()
       .then(data => {
         setCalled(data)
-        console.log(data)
       })
+
     return () => {
       socket.off('ticket-next');
     };
