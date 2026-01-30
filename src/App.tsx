@@ -25,7 +25,7 @@ type CALLED = {
 
 
 const fetchdata = async () => {
-  return await fetch(`http://localhost:3000/next`,
+  return await fetch(`http://localhost:3000/api/next`,
     {
       method: 'GET',
       headers: {
